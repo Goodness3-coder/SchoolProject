@@ -1,0 +1,46 @@
+{% extends 'school/base.html' %}
+{% block content %}
+<h2 class="text-2xl font-semibold text-green-700 mb-4">Grades</h2>
+
+<div class="mb-4">
+  {% if user.is_authenticated and user.role == "admin" or user.is_authenticated and user.role == "teacher" %}
+    <a href="{% url 'grade_create' %}" class="bg-blue-600 text-white px-4 py-2 rounded">Add Grade</a>
+  {% endif %}
+</div>
+
+<table class="w-full border text-sm">
+  <thead class="bg-green-600 text-white">
+    <tr>
+      <th class="py-2 px-4 text-left">Student</th>
+      <th class="py-2 px-4 text-left">Course</th>
+      <th class="py-2 px-4 text-left">Score (%)</th>
+      <th class="py-2 px-4 text-left">Grade</th>
+      <th class="py-2 px-4 text-left">Date Recorded</th>
+      {% if user.is_authenticated and user.role == "admin" or user.is_authenticated and user.role == "teacher" %}
+        <th class="py-2 px-4 text-left">Actions</th>
+      {% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for grade in grades %}
+      <tr class="border-b hover:bg-gray-100">
+        <td class="py-2 px-4">{{ grade.student.name }}</td>
+        <td class="py-2 px-4">{{ grade.course }}</td>
+        <td class="py-2 px-4">{{ grade.score }}</td>
+        <td class="py-2 px-4">{{ grade.letter_grade }}</td>
+        <td class="py-2 px-4">{{ grade.date_recorded }}</td>
+        {% if user.is_authenticated and user.role == "admin" or user.is_authenticated and user.role == "teacher" %}
+          <td class="py-2 px-4">
+            <a href="{% url 'grade_update' grade.id %}" class="text-blue-600 hover:underline">Edit</a> |
+            <a href="{% url 'grade_delete' grade.id %}" class="text-red-600 hover:underline">Delete</a>
+          </td>
+        {% endif %}
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="6" class="text-center py-4 text-gray-500">No grades recorded yet.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

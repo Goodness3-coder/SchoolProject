@@ -1,0 +1,84 @@
+{% extends 'school/base.html' %}
+{% block content %}
+
+<div class="mb-6 flex justify-between items-center">
+  <h2 class="text-2xl font-bold text-green-700">Class Timetable</h2>
+
+  {# ✅ Only Admins and Teachers can add timetable entries #}
+  {% if user.is_authenticated and user.role == "admin"  %}
+    <a href="{% url 'timetable_create' %}" 
+       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+      ➕ Add Timetable
+    </a>
+  {% elif user.is_authenticated and user.role == "teacher" %}
+    <a href="{% url 'timetable_create' %}" 
+       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+      ➕ Add Timetable
+    </a>
+  {% endif %}
+</div>
+
+<!-- Classroom Filter -->
+<form method="get" class="mb-6">
+  <label for="classroom" class="block mb-2 text-sm font-medium text-gray-700">Select Classroom:</label>
+  <select name="classroom" id="classroom" onchange="this.form.submit()" 
+          class="p-2 border rounded-lg w-64 focus:ring-green-500 focus:border-green-500">
+    <option value="">-- All Classes --</option>
+    {% for classroom in classrooms %}
+      <option value="{{ classroom.id }}" {% if selected_classroom == classroom.id %}selected{% endif %}>
+        {{ classroom.name }}
+      </option>
+    {% endfor %}
+  </select>
+</form>
+
+<!-- Timetable Table -->
+<div class="overflow-x-auto">
+  <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+    <thead class="bg-green-600 text-white">
+      <tr>
+        <th class="py-3 px-4 text-left">Day</th>
+        <th class="py-3 px-4 text-left">Period</th>
+        <th class="py-3 px-4 text-left">Classroom</th>
+        <th class="py-3 px-4 text-left">Subject</th>
+        <th class="py-3 px-4 text-left">Teacher</th>
+        {% if user.is_authenticated and user.role == "Admin" %}
+          <th class="py-3 px-4 text-left">Actions</th>
+        {% elif user.is_authenticated and user.role == "Teacher" %}
+          <th class="py-3 px-4 text-left">Actions</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in timetable_entries %}
+      <tr class="border-b hover:bg-gray-100">
+        <td class="py-2 px-4">{{ entry.day }}</td>
+        <td class="py-2 px-4">{{ entry.period }}</td>
+        <td class="py-2 px-4">{{ entry.classroom.name }}</td>
+        <td class="py-2 px-4">{{ entry.subject.name }}</td>
+        <td class="py-2 px-4">{{ entry.teacher.full_name }}</td>
+
+        {% if user.is_authenticated and user.role == "admin" %}
+        <td class="py-2 px-4">
+          <a href="{% url 'timetable_delete' entry.pk %}" 
+             class="text-red-600 hover:text-red-800 font-medium">Delete</a>
+        </td>
+        {% elif user.is_authenticated and user.role == "teacher" %}
+        <td class="py-2 px-4">
+          <a href="{% url 'timetable_delete' entry.pk %}" 
+             class="text-red-600 hover:text-red-800 font-medium">Delete</a>
+        </td>
+        {% endif %}
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="text-center py-4 text-gray-500">
+          No timetable entries found.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

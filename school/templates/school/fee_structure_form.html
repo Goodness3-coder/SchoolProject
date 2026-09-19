@@ -1,0 +1,9 @@
+{% extends 'school/base.html' %}
+{% block content %}
+<form method="post" class="max-w-xl mx-auto bg-white p-6 rounded shadow">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Save</button>
+  <a href="{% url 'fee_structure_list' %}" class="ml-4 text-gray-600 hover:underline">Cancel</a>
+</form>
+{% endblock %}

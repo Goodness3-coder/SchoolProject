@@ -1,0 +1,86 @@
+{% extends 'school/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto my-8 px-4">
+
+  <!-- Header Section -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-green-700">Subject Assignments</h1>
+      <p class="text-sm text-gray-600">Overview of classroom subject allocations and assigned teachers.</p>
+    </div>
+
+    {% if user.is_authenticated %}
+      {% if user.role == "Admin" or user.role == "Teacher" or user.role|lower == "admin" or user.role|lower == "teacher" %}
+      <a href="{% url 'assignment_create' %}" 
+         class="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium shadow hover:bg-green-700 transition">
+        <i class="fas fa-plus"></i> Assign Subject
+      </a>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <!-- Assignment Table Container -->
+  <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-left text-sm text-gray-700 border-collapse">
+        <thead class="bg-green-700 text-white font-semibold">
+          <tr>
+            <th class="py-3 px-4 border-b border-green-800 text-left">Classroom</th>
+            <th class="py-3 px-4 border-b border-green-800 text-left">Subject</th>
+            <th class="py-3 px-4 border-b border-green-800 text-left">Teacher</th>
+            {% if user.is_authenticated %}
+              {% if user.role == "Admin" or user.role == "Teacher" or user.role|lower == "admin" or user.role|lower == "teacher" %}
+              <th class="py-3 px-4 border-b border-green-800 text-center">Actions</th>
+              {% endif %}
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 bg-white">
+          {% for assignment in assignments %}
+          <tr class="hover:bg-gray-50 transition">
+            <td class="py-3 px-4 font-medium text-gray-900 border-r border-gray-100">
+              <span class="inline-block bg-green-50 text-green-700 font-semibold px-2.5 py-1 rounded text-xs">
+                {{ assignment.classroom.name }}
+              </span>
+            </td>
+            <td class="py-3 px-4 font-semibold text-gray-800 border-r border-gray-100">
+              {{ assignment.subject.name }}
+            </td>
+            <td class="py-3 px-4 text-gray-700 border-r border-gray-100">
+              {{ assignment.teacher.full_name }}
+            </td>
+
+            {% if user.is_authenticated %}
+              {% if user.role == "Admin" or user.role == "Teacher" or user.role|lower == "admin" or user.role|lower == "teacher" %}
+              <td class="py-3 px-4 text-center">
+                <a href="{% url 'assignment_delete' assignment.pk %}" 
+                   class="inline-flex items-center gap-1 text-red-600 hover:text-red-800 font-medium text-xs transition">
+                  <i class="fas fa-trash"></i> Delete
+                </a>
+              </td>
+              {% endif %}
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="{% if user.role == 'Admin' or user.role == 'Teacher' or user.role|lower == 'admin' or user.role|lower == 'teacher' %}4{% else %}3{% endif %}" class="text-center py-8 text-gray-500 italic">
+              No subject assignments found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer Navigation -->
+  <div class="mt-6">
+    <a href="{% url 'admin_dashboard' %}" class="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+</div>
+{% endblock %}

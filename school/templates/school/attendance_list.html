@@ -1,0 +1,92 @@
+{% extends 'school/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto my-8 px-4">
+
+  <!-- Header Section -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-green-700">Attendance Log</h1>
+      <p class="text-sm text-gray-600">Track and manage student daily attendance records.</p>
+    </div>
+
+    {% if user.role in "admin teacher" %}
+    <a href="{% url 'attendance_create' %}" 
+       class="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium shadow hover:bg-green-700 transition">
+      <i class="fas fa-plus"></i> Mark Attendance
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Attendance Table Wrapper -->
+  <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-left text-sm text-gray-700 border-collapse">
+        <thead class="bg-green-700 text-white font-semibold">
+          <tr>
+            <th class="py-3 px-4 border-b border-green-800 text-left">Student</th>
+            <th class="py-3 px-4 border-b border-green-800 text-center">Date</th>
+            <th class="py-3 px-4 border-b border-green-800 text-center">Status</th>
+            {% if user.role in "admin teacher" %}
+            <th class="py-3 px-4 border-b border-green-800 text-center">Actions</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 bg-white">
+          {% for record in attendance_records %}
+          <tr class="hover:bg-gray-50 transition">
+            <td class="py-3 px-4 font-medium text-gray-900 border-r border-gray-100">
+              {{ record.student.name }}
+            </td>
+            <td class="py-3 px-4 text-center border-r border-gray-100 text-gray-600">
+              {{ record.date }}
+            </td>
+            <td class="py-3 px-4 text-center border-r border-gray-100">
+              {% if record.status|lower == 'present' %}
+                <span class="inline-block bg-green-100 text-green-700 font-semibold px-3 py-1 rounded-full text-xs">
+                  <i class="fas fa-check-circle mr-1"></i> {{ record.status }}
+                </span>
+              {% else %}
+                <span class="inline-block bg-red-100 text-red-700 font-semibold px-3 py-1 rounded-full text-xs">
+                  <i class="fas fa-times-circle mr-1"></i> {{ record.status }}
+                </span>
+              {% endif %}
+            </td>
+
+            {% if user.role in "admin teacher" %}
+            <td class="py-3 px-4 text-center">
+              <div class="flex justify-center items-center gap-3">
+                <a href="{% url 'attendance_update' record.pk %}" 
+                   class="text-blue-600 hover:text-blue-800 font-medium text-xs flex items-center gap-1 transition">
+                  <i class="fas fa-edit"></i> Edit
+                </a>
+                <a href="{% url 'attendance_delete' record.pk %}" 
+                   class="text-red-600 hover:text-red-800 font-medium text-xs flex items-center gap-1 transition">
+                  <i class="fas fa-trash"></i> Delete
+                </a>
+              </div>
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="{% if user.role in 'admin teacher' %}4{% else %}3{% endif %}" class="text-center py-8 text-gray-500 italic">
+              No attendance records found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer Navigation -->
+  <div class="mt-6">
+    <a href="{% url 'admin_dashboard' %}" class="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+</div>
+{% endblock %}

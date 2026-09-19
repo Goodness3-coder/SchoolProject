@@ -1,0 +1,30 @@
+{% extends 'school/base.html' %}
+{% block content %}
+<h2 class="text-2xl font-semibold text-green-700 mb-4">Fee Structures</h2>
+<a href="{% url 'fee_structure_create' %}" class="bg-blue-600 text-white px-4 py-2 rounded mb-4 inline-block">Add Fee</a>
+
+<table class="min-w-full bg-white shadow-md rounded">
+  <thead class="bg-green-600 text-white">
+    <tr>
+      <th class="px-4 py-2">Class</th>
+      <th class="px-4 py-2">Term</th>
+      <th class="px-4 py-2">Session</th>
+      <th class="px-4 py-2">Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for fee in fees %}
+    <tr class="border-b hover:bg-gray-100">
+      <td class="px-4 py-2 border border-gray-300 text-center">{{ fee.classroom.name }}</td>
+      <td class="px-4 py-2 border border-gray-300 text-center">{{ fee.term }}</td>
+      <td class="px-4 py-2 border border-gray-300 text-center">{{ fee.session }}</td>
+      <td class="px-4 py-2 border border-gray-300 text-center">₦{{ fee.amount }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="4" class="text-center py-4 text-gray-500">No fees set yet.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

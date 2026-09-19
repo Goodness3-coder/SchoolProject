@@ -1,0 +1,39 @@
+{% extends 'school/base.html' %}
+{% block content %}
+<a href="{% url 'classroom_create' %}" class="bg-blue-600 text-white px-4 py-2 rounded mb-4 inline-block">Add Class</a>
+
+<table class="min-w-full bg-white shadow-md rounded">
+  <thead class="bg-green-600 text-white">
+    <tr>
+      <th class="py-2 px-4">Name</th>
+      <th class="py-2 px-4">Teacher</th>
+      <th class="py-2 px-4">Description</th>
+      <th class="py-2 px-4">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for classroom in classrooms %}
+<tr class="border-b hover:bg-gray-100">
+  <td class="py-2 px-4">{{ classroom.name }}</td>
+  <td class="py-2 px-4">
+    {% if classroom.teacher %}
+      {{ classroom.teacher.full_name }}
+    {% else %}
+      N/A
+    {% endif %}
+  </td>
+  <td class="py-2 px-4 border border-gray-300 text-center">{{ classroom.description|default:"—" }}</td>
+  <td class="py-2 px-4 border border-gray-300 text-center">
+    <a href="{% url 'classroom_update' classroom.pk %}" class="text-blue-500 hover:underline mr-2">Edit</a>
+    <a href="{% url 'classroom_delete' classroom.pk %}" class="text-red-500 hover:underline">Delete</a>
+  </td>
+</tr>
+{% empty %}
+<tr>
+  <td colspan="4" class="text-center py-4 text-gray-500">No classes yet.</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% endblock %}

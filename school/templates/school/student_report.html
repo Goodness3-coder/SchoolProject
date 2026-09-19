@@ -1,0 +1,47 @@
+{% extends 'school/base.html' %}
+{% block content %}
+
+<div class="bg-white p-6 rounded shadow max-w-4xl mx-auto">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-green-700">Report Card - {{ student.name }}</h2>
+    <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded">Print</button>
+  </div>
+
+  <div class="mb-4">
+    <p><strong>Email:</strong> {{ student.email }}</p>
+    <p><strong>Department:</strong> {{ student.department }}</p>
+    <p><strong>Date of Birth:</strong> {{ student.date_of_birth }}</p>
+  </div>
+
+  <hr class="my-4">
+
+  <h3 class="text-xl font-semibold mb-2">Grades</h3>
+  <table class="w-full bg-white shadow border rounded">
+    <thead class="bg-green-600 text-white">
+      <tr>
+        <th class="px-4 py-2">Course</th>
+        <th class="px-4 py-2">Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for grade in grades %}
+      <tr class="border-b hover:bg-gray-50">
+        <td class="px-4 py-2">{{ grade.course.name }}</td>
+        <td class="px-4 py-2">{{ grade.score }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="2" class="text-center py-4 text-gray-500">No grades available.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <hr class="my-6">
+
+  <h3 class="text-xl font-semibold mb-2">Attendance Summary</h3>
+  <p><strong>Present:</strong> {{ total_present }} times</p>
+  <p><strong>Absent:</strong> {{ total_absent }} times</p>
+</div>
+
+{% endblock %}

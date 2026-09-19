@@ -1,0 +1,41 @@
+{% extends 'school/base.html' %}
+{% block content %}
+
+{% if user.role in "admin teacher" %}
+<a href="{% url 'course_create' %}" class="bg-blue-600 text-white px-4 py-2 rounded mb-4 inline-block">
+  Add Course
+</a>
+{% endif %}
+
+<table class="min-w-full bg-white shadow-md rounded">
+  <thead class="bg-green-600 text-white">
+    <tr>
+      <th class="py-2 px-4 text-left border border-gray-300">Course Code</th>
+      <th class="py-2 px-4 text-center border border-gray-300">Course Name</th>
+      <th class="py-2 px-4 text-center border border-gray-300">Department</th>
+      {% if user.role in "admin teacher" %}
+      <th class="py-2 px-4">Actions</th>
+      {% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for course in courses %}
+    <tr class="border-b hover:bg-gray-100">
+      <td class="py-2 px-4 border border-gray-300 text-left">{{ course.code }}</td>
+      <td class="py-2 px-4 border border-gray-300 text-center">{{ course.name }}</td>
+      <td class="py-2 px-4 border border-gray-300 text-center">{{ course.department }}</td>
+
+      {% if user.role in "admin teacher" %}
+      <td class="py-2 px-4">
+        <a href="{% url 'course_update' course.pk %}" 
+           class="text-blue-500 hover:underline mr-2">Edit</a>
+        <a href="{% url 'course_delete' course.pk %}" 
+           class="text-red-500 hover:underline">Delete</a>
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

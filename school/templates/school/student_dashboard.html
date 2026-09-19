@@ -1,0 +1,104 @@
+{% extends 'school/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Welcome Header -->
+<div class="max-w-6xl mx-auto mt-6 mb-8 text-center">
+  <h1 class="text-3xl font-bold text-green-700 mb-2">Welcome, {{ student.name }}!</h1>
+  <p class="text-gray-600">Track your academic grades, daily attendance history, and weekly timetable.</p>
+</div>
+
+<!-- Main Background Wrapper -->
+<div class="min-h-screen py-8 px-4 bg-cover bg-center bg-no-repeat rounded-xl" style="background-image: url('{% static 'school/images/123.jpg' %}');">
+  <div class="max-w-7xl mx-auto bg-white bg-opacity-95 backdrop-blur-md p-6 rounded-xl shadow-lg">
+
+    <!-- Student Info Header Card -->
+    <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-green-800">{{ student.name }}</h2>
+        <p class="text-sm text-gray-600">Classroom: <span class="font-semibold text-gray-800">{{ student.classroom.name|default:"Not Assigned" }}</span> | Student ID: <span class="font-semibold text-gray-800">#{{ student.id }}</span></p>
+      </div>
+      <a href="{% url 'student_report_card' student.id %}" class="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow hover:bg-green-700 transition">
+        <i class="fas fa-file-alt"></i> View Full Report Card
+      </a>
+    </div>
+
+    <!-- Student Dashboard Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+      <!-- Academic Grades Card -->
+      <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center gap-3 mb-4 border-b pb-3">
+          <div class="bg-blue-100 text-blue-600 p-2.5 rounded-full">
+            <i class="fas fa-graduation-cap text-lg"></i>
+          </div>
+          <h3 class="text-lg font-bold text-gray-800">Your Grades</h3>
+        </div>
+        <ul class="space-y-2 text-sm text-gray-700 max-h-64 overflow-y-auto pr-1">
+          {% for grade in grades %}
+            <li class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+              <span class="font-medium text-gray-800">{{ grade.course.name }}</span>
+              <span class="font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded text-xs">{{ grade.score }}</span>
+            </li>
+          {% empty %}
+            <li class="text-gray-500 italic py-4 text-center">No grades recorded yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Attendance History Card -->
+      <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center gap-3 mb-4 border-b pb-3">
+          <div class="bg-yellow-100 text-yellow-600 p-2.5 rounded-full">
+            <i class="fas fa-calendar-check text-lg"></i>
+          </div>
+          <h3 class="text-lg font-bold text-gray-800">Attendance Log</h3>
+        </div>
+        <ul class="space-y-2 text-sm text-gray-700 max-h-64 overflow-y-auto pr-1">
+          {% for record in attendance_records %}
+            <li class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+              <span class="text-xs font-medium text-gray-600">{{ record.date }}</span>
+              {% if record.status|lower == 'present' %}
+                <span class="font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded text-xs">Present</span>
+              {% else %}
+                <span class="font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded text-xs">{{ record.status }}</span>
+              {% endif %}
+            </li>
+          {% empty %}
+            <li class="text-gray-500 italic py-4 text-center">No attendance entries.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Weekly Timetable Card -->
+      <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center gap-3 mb-4 border-b pb-3">
+          <div class="bg-purple-100 text-purple-600 p-2.5 rounded-full">
+            <i class="fas fa-clock text-lg"></i>
+          </div>
+          <h3 class="text-lg font-bold text-gray-800">Class Schedule</h3>
+        </div>
+        <ul class="space-y-2 text-sm text-gray-700 max-h-64 overflow-y-auto pr-1">
+          {% for entry in timetable %}
+            <li class="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+              <div class="font-bold text-green-700 text-xs">{{ entry.day }} — Period {{ entry.period }}</div>
+              <div class="text-gray-800 font-semibold">{{ entry.subject.name }}</div>
+            </li>
+          {% empty %}
+            <li class="text-gray-500 italic py-4 text-center">No timetable entries available.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Navigation Footer -->
+    <div class="pt-4 border-t border-gray-200 flex justify-between items-center">
+      <a href="{% url 'role_based_dashboard' %}" class="text-sm font-medium text-gray-600 hover:text-gray-800">
+        <i class="fas fa-arrow-left"></i> Home Navigation
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

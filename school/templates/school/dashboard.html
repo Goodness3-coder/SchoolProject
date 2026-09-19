@@ -1,0 +1,77 @@
+{% extends 'school/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Welcome Message -->
+<div class="max-w-4xl mx-auto mt-8 mb-10 text-center">
+  <h1 class="text-3xl font-bold text-green-700 mb-2">Welcome to the Portal!</h1>
+  <p class="text-gray-700">Access key administrative summary stats and system shortcuts below.</p>
+</div>
+
+<!-- Dashboard background with dynamic image selection -->
+<div class="min-h-screen py-10 px-4 bg-cover bg-center bg-no-repeat rounded-xl shadow-inner"
+     style="background-image: url('{% if school_setting and school_setting.dashboard_bg %}{{ school_setting.dashboard_bg.url }}{% else %}{% static 'school/images/123.jpg' %}{% endif %}');">
+  
+  <div class="max-w-7xl mx-auto bg-white/80 backdrop-blur-md p-6 rounded-xl shadow-lg border border-white/20">
+
+    <!-- Stats Summary with Icons -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto mb-10">
+      
+      <!-- Students -->
+      <div class="bg-white/90 p-6 rounded-2xl shadow hover:shadow-lg transition flex items-center gap-4">
+        <div class="bg-green-100 text-green-600 p-3 rounded-full">
+          <i class="fas fa-user-graduate text-2xl"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-green-700">{{ total_students|default:"0" }}</h3>
+          <p class="text-gray-600">Students</p>
+        </div>
+      </div>
+
+      <!-- Courses -->
+      <div class="bg-white/90 p-6 rounded-2xl shadow hover:shadow-lg transition flex items-center gap-4">
+        <div class="bg-blue-100 text-blue-600 p-3 rounded-full">
+          <i class="fas fa-book-open text-2xl"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-blue-700">{{ total_courses|default:"0" }}</h3>
+          <p class="text-gray-600">Courses</p>
+        </div>
+      </div>
+
+      <!-- Attendance -->
+      <div class="bg-white/90 p-6 rounded-2xl shadow hover:shadow-lg transition flex items-center gap-4">
+        <div class="bg-yellow-100 text-yellow-600 p-3 rounded-full">
+          <i class="fas fa-clipboard-list text-2xl"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-yellow-700">{{ total_attendance|default:"0" }}</h3>
+          <p class="text-gray-600">Attendance Records</p>
+        </div>
+      </div>
+
+      <!-- Present Today -->
+      <div class="bg-white/90 p-6 rounded-2xl shadow hover:shadow-lg transition flex items-center gap-4">
+        <div class="bg-red-100 text-red-600 p-3 rounded-full">
+          <i class="fas fa-users text-2xl"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-red-700">{{ present_today|default:"0" }}</h3>
+          <p class="text-gray-600">Present Today</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Redirection Banner -->
+    <div class="max-w-6xl mx-auto text-center bg-gray-50/90 border border-gray-200 rounded-xl p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-800 mb-2">Looking for your role-specific dashboard?</h2>
+      <p class="text-sm text-gray-600 mb-4">Click below to navigate directly to your assigned workspace.</p>
+      <a href="{% url 'role_based_dashboard' %}" class="inline-block bg-green-600 text-white px-6 py-2.5 rounded-lg font-medium shadow hover:bg-green-700 transition">
+        Go to My Workspace
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'school/base.html' %}
+{% block content %}
+
+<!-- Welcome Message -->
+<div class="max-w-4xl mx-auto mt-8 mb-10 text-center">
+  <h1 class="text-3xl font-bold text-green-700 mb-2">Welcome, Admin!</h1>
+  <p class="text-gray-700">Use the navigation links to manage students, teachers, classrooms, timetable and more.</p>
+</div>
+
+<!-- Stats Summary -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto mb-10">
+  <div class="bg-white p-4 rounded shadow text-center">
+    <h3 class="text-xl font-bold text-green-600">{{ total_students }}</h3>
+    <p class="text-gray-700">Students</p>
+  </div>
+  <div class="bg-white p-4 rounded shadow text-center">
+    <h3 class="text-xl font-bold text-green-600">{{ total_courses }}</h3>
+    <p class="text-gray-700">Courses</p>
+  </div>
+  <div class="bg-white p-4 rounded shadow text-center">
+    <h3 class="text-xl font-bold text-green-600">{{ total_attendance }}</h3>
+    <p class="text-gray-700">Attendance Records</p>
+  </div>
+  <div class="bg-white p-4 rounded shadow text-center">
+    <h3 class="text-xl font-bold text-green-600">{{ present_today }}</h3>
+    <p class="text-gray-700">Present Today</p>
+  </div>
+</div>
+
+<!-- Timetable Management -->
+<div class="mb-4 flex justify-between items-center">
+  <h2 class="text-2xl font-semibold text-green-700">Class Timetable</h2>
+  <a href="{% url 'timetable_create' %}" class="bg-blue-600 text-white px-4 py-2 rounded">Add Entry</a>
+</div>
+
+<form method="get" class="mb-6">
+  <label for="classroom" class="block mb-2 text-sm">Select Classroom:</label>
+  <select name="classroom" id="classroom" onchange="this.form.submit()" class="p-2 border rounded w-60">
+    <option value="">-- All Classes --</option>
+    {% for classroom in classrooms %}
+      <option value="{{ classroom.id }}" {% if selected_classroom == classroom.id %}selected{% endif %}>
+        {{ classroom.name }}
+      </option>
+    {% endfor %}
+  </select>
+</form>
+
+<table class="min-w-full bg-white shadow-md rounded">
+  <thead class="bg-green-600 text-white">
+    <tr>
+      <th class="py-2 px-4">Day</th>
+      <th class="py-2 px-4">Period</th>
+      <th class="py-2 px-4">Classroom</th>
+      <th class="py-2 px-4">Subject</th>
+      <th class="py-2 px-4">Teacher</th>
+      <th class="py-2 px-4">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for entry in timetable_entries %}
+    <tr class="border-b hover:bg-gray-100">
+      <td class="py-2 px-4">{{ entry.day }}</td>
+      <td class="py-2 px-4">{{ entry.period }}</td>
+      <td class="py-2 px-4">{{ entry.classroom.name }}</td>
+      <td class="py-2 px-4">{{ entry.subject.name }}</td>
+      <td class="py-2 px-4">{{ entry.teacher.full_name }}</td>
+      <td class="py-2 px-4">
+        <a href="{% url 'timetable_delete' entry.pk %}" class="text-red-600 hover:underline">Delete</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6" class="text-center py-4 text-gray-500">No entries yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}
