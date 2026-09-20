@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
 class Command(BaseCommand):
-    help = 'Creates a default superuser'
+    help = 'Creates or updates the default superuser'
 
     def handle(self, *args, **kwargs):
         User = get_user_model()
@@ -11,8 +11,19 @@ class Command(BaseCommand):
         email = os.getenv('ADMIN_EMAIL', 'admin@example.com')
         password = os.getenv('ADMIN_PASSWORD', 'Admin12345!')
 
-        if not User.objects.filter(username=username).exists():
-            User.objects.create_superuser(username=username, email=email, password=password)
+        user, created = User.objects.get_or_create(username=username, defaults={'email': email})
+        
+        user.is_staff = True
+        user.is_superuser = True
+        
+        # Explicitly assign 'ADMIN' role to pass your custom dashboard permission check
+        if hasattr(user, 'role'):
+            user.role = 'ADMIN'
+            
+        user.set_password(password)
+        user.save()
+
+        if created:
             self.stdout.write(self.style.SUCCESS(f'Superuser "{username}" created successfully.'))
         else:
-            self.stdout.write(self.style.SUCCESS(f'Superuser "{username}" already exists.'))
+            self.stdout.write(self.style.SUCCESS(f'Superuser "{username}" updated successfully with ADMIN permissions.'))
