@@ -38,23 +38,26 @@ def dashboard(request):
 
 @login_required
 def role_based_dashboard(request):
-    user_role = str(getattr(request.user, 'role', '')).strip().lower()
-    
-    # Explicit roles take priority
+    # Normalize role string (lowercase and stripped)
+    user_role = str(getattr(request.user, 'role', '') or '').strip().lower()
+
+    # 1. Superusers/Staff always go to the Django Admin / Custom Admin
+    if request.user.is_superuser or request.user.is_staff or user_role in ['admin', 'administrator']:
+        return redirect('/admin/')  # Or redirect('admin_dashboard') if you have a custom view
+
+    # 2. Non-staff users routed by explicit role
     if user_role == 'teacher':
         return redirect('teacher_dashboard')
     elif user_role == 'student':
         return redirect('student_dashboard')
     elif user_role == 'parent':
         return redirect('parent_dashboard')
-    elif user_role in ['admin', 'administrator']:
-        return redirect('admin_dashboard')
-    
-    # Fallback for Django superusers without an explicit non-admin role
-    if request.user.is_superuser:
-        return redirect('admin_dashboard')
-        
-    return redirect('admin_dashboard')
+
+    # 3. SAFE FALLBACK (Prevents Infinite Redirect Loop)
+    # If an active account has no role set, render an informative page instead of redirecting
+    return render(request, 'school/no_role.html', {
+        'message': f'Welcome {request.user.username}! Your account is active, but no role (Parent, Student, or Teacher) is assigned yet. Please ask an administrator to assign your role.'
+    })
 
 @login_required
 def admin_dashboard(request):
