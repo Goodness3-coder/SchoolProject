@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from django.urls import reverse_lazy  # ADD THIS LINE
+from django.urls import reverse_lazy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -9,10 +9,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables
 load_dotenv(BASE_DIR / '.env')
 
-SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = True
-#DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['schoolproject-j16g.onrender.com', 'localhost', '127.0.0.1']
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-change-this')
+
+# Toggle DEBUG based on environment variable (defaults to False in production)
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+
+ALLOWED_HOSTS = [
+    'schoolproject-j16g.onrender.com',
+    'schoolproject-ji6g.onrender.com',
+    '.onrender.com',
+    'localhost',
+    '127.0.0.1',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://schoolproject-j16g.onrender.com',
+    'https://schoolproject-ji6g.onrender.com',
+]
+
+# Tell Django to trust Render's HTTPS reverse proxy header
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ✅ App Registration
 INSTALLED_APPS = [
@@ -55,7 +71,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.media',  # Added to access MEDIA_URL in templates easily
+                'django.template.context_processors.media',
             ],
         },
     },
@@ -97,17 +113,17 @@ STORAGES = {
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-   },
-}                                                             
+    },
+}                                                                      
 WHITENOISE_MANIFEST_STRICT = False
 
-# ✅ Media Files (User-uploaded files like background images)
+# ✅ Media Files (User-uploaded files)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ✅ Auth Redirects (UPDATED FOR ROLE-BASED DASHBOARD)
+# ✅ Auth Redirects
 LOGIN_URL = reverse_lazy('login')
-LOGIN_REDIRECT_URL = reverse_lazy('role_based_dashboard')  # Directs users to the role router after login
+LOGIN_REDIRECT_URL = reverse_lazy('role_based_dashboard')
 LOGOUT_REDIRECT_URL = reverse_lazy('login')
 
 # ✅ Default field type
