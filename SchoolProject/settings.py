@@ -22,13 +22,19 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 
+# Wildcard origin along with exact URLs to pass Render's CSRF checks
 CSRF_TRUSTED_ORIGINS = [
     'https://schoolproject-j16g.onrender.com',
     'https://schoolproject-ji6g.onrender.com',
+    'https://*.onrender.com',
 ]
 
 # Tell Django to trust Render's HTTPS reverse proxy header
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Enforce secure cookies over HTTPS connections
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 
 # ✅ App Registration
 INSTALLED_APPS = [
@@ -114,7 +120,7 @@ STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
-}                                                                      
+}                                                                       
 WHITENOISE_MANIFEST_STRICT = False
 
 # ✅ Media Files (User-uploaded files)
