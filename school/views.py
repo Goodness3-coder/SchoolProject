@@ -30,6 +30,17 @@ from .permissions import IsAdmin, IsTeacher, IsStudent, IsParent, IsAdminOrTeach
 
 # ===================== DASHBOARDS =====================
 
+from datetime import date
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db.models import Sum, Count, Avg
+from .models import (
+    SchoolSetting, Student, Teacher, Course, Classroom,
+    Attendance, Payment, Timetable, SubjectAssignment, Parent, Grade
+)
+
+
 @login_required
 def dashboard(request):
     """Main landing dashboard that directs users based on role."""
@@ -38,45 +49,134 @@ def dashboard(request):
 
 @login_required
 def role_based_dashboard(request):
-    # Normalize role string (lowercase and stripped)
     user_role = str(getattr(request.user, 'role', '') or '').strip().lower()
 
-    # 1. Superusers/Staff always go to the Django Admin / Custom Admin
-    if request.user.is_superuser or request.user.is_staff or user_role in ['admin', 'administrator']:
-        return redirect('/admin/')  # Or redirect('admin_dashboard') if you have a custom view
-
-    # 2. Non-staff users routed by explicit role
-    if user_role == 'teacher':
-        return redirect('teacher_dashboard')
-    elif user_role == 'student':
+    # ---------------------------------------------------------
+    # 1. STUDENTS & PARENTS (Direct Routing - No Staff/Admin Checks)
+    # ---------------------------------------------------------
+    if user_role == 'student':
         return redirect('student_dashboard')
-    elif user_role == 'parent':
+    
+    if user_role == 'parent':
         return redirect('parent_dashboard')
 
-    # 3. SAFE FALLBACK (Prevents Infinite Redirect Loop)
-    # If an active account has no role set, render an informative page instead of redirecting
+    # ---------------------------------------------------------
+    # 2. OFFICIAL STAFF & ADMIN (Teachers & Superusers)
+    # ---------------------------------------------------------
+    if user_role == 'teacher':
+        return redirect('teacher_dashboard')
+
+    if request.user.is_superuser or request.user.is_staff or user_role in ['admin', 'administrator']:
+        return redirect('admin_dashboard')
+
+    # Safe Fallback if a user has no assigned role
     return render(request, 'school/no_role.html', {
-        'message': f'Welcome {request.user.username}! Your account is active, but no role (Parent, Student, or Teacher) is assigned yet. Please ask an administrator to assign your role.'
+        'message': f'Welcome {request.user.username}! Your account is active, but no role has been assigned yet. Please contact an administrator.'
     })
+
+
+@login_required
+def student_dashboard(request):
+    user_role = str(getattr(request.user, 'role', '') or '').strip().lower()
+
+    if user_role != "student" and not request.user.is_superuser:
+        messages.warning(request, "Unauthorized access.")
+        return redirect('role_based_dashboard')
+
+    student = Student.objects.filter(user=request.user).first()
+    if not student:
+        if request.user.is_superuser:
+            messages.info(request, "Superusers do not have an associated Student record.")
+            return redirect('admin_dashboard')
+        messages.error(request, "Student profile details not found. Please contact an administrator.")
+        return redirect('role_based_dashboard')
+
+    grades = Grade.objects.filter(student=student)
+    attendance_records = Attendance.objects.filter(student=student)
+    timetable = Timetable.objects.filter(classroom=student.classroom) if student.classroom else []
+
+    return render(request, 'school/student_dashboard.html', {
+        'student': student,
+        'grades': grades,
+        'attendance_records': attendance_records,
+        'timetable': timetable,
+    })
+
+
+@login_required
+def parent_dashboard(request):
+    user_role = str(getattr(request.user, 'role', '') or '').strip().lower()
+
+    if user_role != "parent" and not request.user.is_superuser:
+        messages.warning(request, "Unauthorized access.")
+        return redirect('role_based_dashboard')
+
+    parent = Parent.objects.filter(user=request.user).first()
+    if not parent:
+        if request.user.is_superuser:
+            messages.info(request, "Superusers do not have an associated Parent record.")
+            return redirect('admin_dashboard')
+        messages.error(request, "Parent profile details not found. Please contact an administrator.")
+        return redirect('role_based_dashboard')
+
+    students = parent.student.all() if hasattr(parent, 'student') else []
+
+    student_data = []
+    for st in students:
+        timetable = Timetable.objects.filter(classroom=st.classroom) if st.classroom else []
+        assignments = SubjectAssignment.objects.filter(classroom=st.classroom) if st.classroom else []
+        payments = Payment.objects.filter(student=st)
+        student_data.append({
+            'student': st,
+            'timetable': timetable,
+            'assignments': assignments,
+            'payments': payments,
+        })
+
+    return render(request, 'school/parent_dashboard.html', {
+        'parent': parent,
+        'student_data': student_data,
+    })
+
+
+@login_required
+def teacher_dashboard(request):
+    user_role = str(getattr(request.user, 'role', '') or '').strip().lower()
+    
+    if user_role != "teacher" and not request.user.is_superuser:
+        messages.warning(request, "Unauthorized access.")
+        return redirect('role_based_dashboard')
+
+    teacher = Teacher.objects.filter(user=request.user).first()
+    if not teacher:
+        if request.user.is_superuser:
+            messages.info(request, "Superusers do not have an associated Teacher record.")
+            return redirect('admin_dashboard')
+        messages.error(request, "Teacher profile details not found. Please contact an administrator.")
+        return redirect('role_based_dashboard')
+
+    assignments = SubjectAssignment.objects.filter(teacher=teacher)
+    classrooms = assignments.values_list('classroom', flat=True).distinct()
+    timetable_entries = Timetable.objects.filter(classroom__in=classrooms)
+    students = Student.objects.filter(classroom__in=classrooms)
+
+    return render(request, 'school/teacher_dashboard.html', {
+        'teacher': teacher,
+        'assignments': assignments,
+        'timetable_entries': timetable_entries,
+        'students': students,
+    })
+
 
 @login_required
 def admin_dashboard(request):
-    # Enforce strict access control: block students, teachers, and parents
     user_role = str(getattr(request.user, 'role', '')).strip().lower()
     is_admin_user = request.user.is_staff or request.user.is_superuser or user_role in ['admin', 'administrator']
 
     if not is_admin_user:
         messages.error(request, "Access denied. You do not have permission to view the Admin Dashboard.")
-        if user_role == 'student':
-            return redirect('student_dashboard')
-        elif user_role == 'teacher':
-            return redirect('teacher_dashboard')
-        elif user_role == 'parent':
-            return redirect('parent_dashboard')
-        else:
-            return redirect('student_dashboard')
+        return redirect('role_based_dashboard')
 
-    # Fetch school settings for dynamic background & branding
     school_setting = SchoolSetting.objects.first()
 
     total_students = Student.objects.count()
@@ -93,7 +193,6 @@ def admin_dashboard(request):
     if class_id:
         timetable_entries = timetable_entries.filter(classroom_id=class_id)
 
-    # Statistical data for charts
     class_data = Classroom.objects.annotate(student_count=Count('students')).values_list('name', 'student_count')
     class_labels = [c[0] for c in class_data]
     student_counts = [c[1] for c in class_data]
@@ -121,114 +220,11 @@ def admin_dashboard(request):
     }
     return render(request, 'school/admin_dashboard.html', context)
 
+
 @login_required
 def stats_dashboard(request):
     """Alias view for admin stats dashboard analytics."""
     return admin_dashboard(request)
-
-
-@login_required
-def teacher_dashboard(request):
-    user_role = str(getattr(request.user, 'role', '')).strip().lower()
-    
-    if user_role != "teacher" and not request.user.is_superuser:
-        messages.warning(request, "Unauthorized access.")
-        return redirect('admin_dashboard')  # Prevent loop: redirect to hard target instead of router
-
-    teacher = Teacher.objects.filter(user=request.user).first()
-    if not teacher:
-        if request.user.is_superuser:
-            messages.info(request, "Superusers do not have an associated Teacher record. Redirected to Admin Dashboard.")
-            return redirect('admin_dashboard')
-        messages.error(request, "Teacher profile details not found. Please contact an administrator.")
-        return redirect('admin_dashboard')
-
-    assignments = SubjectAssignment.objects.filter(teacher=teacher)
-    classrooms = assignments.values_list('classroom', flat=True).distinct()
-    timetable_entries = Timetable.objects.filter(classroom__in=classrooms)
-    students = Student.objects.filter(classroom__in=classrooms)
-
-    return render(request, 'school/teacher_dashboard.html', {
-        'teacher': teacher,
-        'assignments': assignments,
-        'timetable_entries': timetable_entries,
-        'students': students,
-    })
-
-
-@login_required
-def parent_dashboard(request):
-    user_role = str(getattr(request.user, 'role', '')).strip().lower()
-
-    if user_role != "parent" and not request.user.is_superuser:
-        messages.warning(request, "Unauthorized access.")
-        return redirect('admin_dashboard')  # Prevent loop: redirect to hard target instead of router
-
-    parent = Parent.objects.filter(user=request.user).first()
-    if not parent:
-        if request.user.is_superuser:
-            messages.info(request, "Superusers do not have an associated Parent record. Redirected to Admin Dashboard.")
-            return redirect('admin_dashboard')
-        messages.error(request, "Parent profile details not found. Please contact an administrator.")
-        return redirect('admin_dashboard')
-
-    students = parent.student.all()
-
-    if not students.exists():
-        messages.warning(request, "No students linked to your account.")
-        return render(request, 'school/parent_dashboard.html', {
-            'parent': parent,
-            'student_data': [],
-        })
-
-    student_data = []
-    for student in students:
-        timetable = Timetable.objects.filter(classroom=student.classroom) if student.classroom else []
-        assignments = SubjectAssignment.objects.filter(classroom=student.classroom) if student.classroom else []
-        payments = Payment.objects.filter(student=student)
-        student_data.append({
-            'student': student,
-            'timetable': timetable,
-            'assignments': assignments,
-            'payments': payments,
-        })
-
-    return render(request, 'school/parent_dashboard.html', {
-        'parent': parent,
-        'student_data': student_data,
-    })
-
-
-@login_required
-def student_dashboard(request):
-    user_role = str(getattr(request.user, 'role', '')).strip().lower()
-
-    if user_role != "student" and not request.user.is_superuser:
-        messages.warning(request, "Unauthorized access.")
-        return redirect('admin_dashboard')  # Prevent loop: redirect to hard target instead of router
-
-    # Fetch student profile safely without triggering a 404 error
-    student = Student.objects.filter(user=request.user).first()
-
-    if not student:
-        if request.user.is_superuser:
-            messages.info(request, "Superusers do not have an associated Student record. Redirected to Admin Dashboard.")
-            return redirect('admin_dashboard')
-        
-        messages.error(request, "Student profile details not found. Please contact an administrator.")
-        return redirect('admin_dashboard')
-
-    # Fetch student-specific records
-    grades = Grade.objects.filter(student=student)
-    attendance_records = Attendance.objects.filter(student=student)
-    timetable = Timetable.objects.filter(classroom=student.classroom) if student.classroom else []
-
-    return render(request, 'school/student_dashboard.html', {
-        'student': student,
-        'grades': grades,
-        'attendance_records': attendance_records,
-        'timetable': timetable,
-    })
 
 # ===================== AUTHENTICATION =====================
 
