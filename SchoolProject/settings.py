@@ -96,8 +96,8 @@ STORAGES = {
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-    },
-}
+   },
+}                                                             
 WHITENOISE_MANIFEST_STRICT = False
 
 # ✅ Media Files (User-uploaded files like background images)
